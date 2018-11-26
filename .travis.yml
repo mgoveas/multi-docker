@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t mgoveas/react-test -f ./client/Dockerfile.dev .
+
+script:
+  - docker run mgoveas/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t mgoveas/multi-client ./client
+  - docker build -t mgoveas/multi-nginx ./nginx
+  - docker build -t mgoveas/multi-server ./server
+  - docker build -t mgoveas/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push mgoveas/multi-client
+  - docker push mgoveas/multi-server
+  - docker push mgoveas/multi-nginx
+  - docker push mgoveas/multi-worker
